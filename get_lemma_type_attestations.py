@@ -106,10 +106,9 @@ def plot_infltypes_by_counts(ax, num_by_feats, pos_by_feats, language, pos, subt
 #    print(count_by_feats)
 #    print(pos_by_feats)
     numbins = 0
-    print(num_by_feats)
     num_by_feats = sorted(num_by_feats.items(), key=lambda kv: kv[1], reverse=True)
     for feats, count in num_by_feats:        
-        print(feats, count)
+#        print(feats, count)
         if pos in pos_by_feats[feats]:
             x.extend([numbins]*count)
             numbins += 1
@@ -153,8 +152,9 @@ def plot_lemmas_by_numtypes(ax, numtypes_by_lemma, pos, cutoff=0):
     numbins = 0
     for lemma, numtypes in numtypes_by_lemma:
         if lemma[1] == pos:
-            x.extend([numbins]*numtypes)
-            numbins += 1
+            if numtypes > 0:
+                x.extend([numbins]*numtypes)
+                numbins += 1
             if cutoff and numbins >= cutoff:
                 break
 
@@ -176,13 +176,22 @@ def plot_numtypes_by_lemmas(ax, numtypes_by_lemma, pos):
                 lemmas_by_numtypes[numtypes] = set([])
             lemmas_by_numtypes[numtypes].add(lemma)
 
+#    print(lemmas_by_numtypes.keys())
+#    exit()
     lemmas_by_numtypes = sorted(lemmas_by_numtypes.items(), key=lambda kv: len(kv[1]), reverse=True)
-
+    
     x = []
     numbins = 0
     for numtypes, lemmas in lemmas_by_numtypes:
         x.extend([numbins]*len(lemmas))
         numbins += 1
+
+
+    import statistics
+    print(x)
+    print(statistics.mean(x))
+    print(statistics.median(x))
+    exit()
 
     if numbins < 2:
         return
@@ -224,6 +233,92 @@ def plot_numtokens_by_lemmas(ax, numtokens_by_lemma,pos):
     return
 
 
+def plot_lemmatokentype_by_rank(ax, numtoks_by_lemma, numtypes_by_lemma, language, pos, title):
+
+    def rank(num_by_lemma_sorted):
+        num_by_lemma_ranked = {}
+        numrank = 0
+        prevnum = 0
+        for lemma, num in num_by_lemma_sorted:
+            if len(lemma) < 2 or lemma[1] != pos:
+                continue
+            if num < prevnum:
+                numrank += 1
+            prevnum = num
+            num_by_lemma_ranked[lemma] = numrank
+        return num_by_lemma_ranked
+
+    numtoks_by_lemma_sorted = sorted(numtoks_by_lemma.items(), key=lambda kv: kv[1], reverse=True)
+    numtypes_by_lemma_sorted = sorted(numtypes_by_lemma.items(), key=lambda kv: kv[1], reverse=True)
+
+    numtypes_by_lemma_ranked = rank(numtypes_by_lemma_sorted)
+    numtoks_by_lemma_ranked = rank(numtoks_by_lemma_sorted)
+
+    xpts = []
+    ypts = []
+ 
+#    print(len(numtypes_by_lemma_ranked))
+#    print(len(numtoks_by_lemma_ranked))
+#    print(numtypes_by_lemma_ranked)
+#    print(numtoks_by_lemma_ranked)
+#    exit()
+    for lemma, numtypes in numtypes_by_lemma_ranked.items():
+        xpts.append(numtypes)
+        if lemma not in numtoks_by_lemma_ranked:
+            print(lemma)
+        ypts.append(numtoks_by_lemma_ranked[lemma])
+
+    ax.plot(xpts, ypts, "o")
+        
+    ax.set_xlabel('Type Rank')
+    ax.set_ylabel('Token Rank')
+    ax.set_title('Type vs Token Rank for ' + pos + " " + title)
+    return
+
+
+def plot_infltokentype_by_rank(ax, numtoks_by_feats, numtypes_by_feats, POS_by_feats, language, pos, title):
+
+    def rank(num_by_feats_sorted):
+        num_by_feats_ranked = {}
+        numrank = 0
+        prevnum = 0
+        for feats, num in num_by_feats_sorted:
+            if len(feats) < 2 or pos not in POS_by_feats[feats]:
+                continue
+            if num < prevnum:
+                numrank += 1
+            prevnum = num
+            num_by_feats_ranked[feats] = numrank
+        return num_by_feats_ranked
+
+    numtoks_by_feats_sorted = sorted(numtoks_by_feats.items(), key=lambda kv: kv[1], reverse=True)
+    numtypes_by_feats_sorted = sorted(numtypes_by_feats.items(), key=lambda kv: kv[1], reverse=True)
+
+#    for feats, numtypes in numtypes_by_feats_sorted:
+#        print(numtypes, "\t", feats)
+#    exit()
+
+    numtypes_by_feats_ranked = rank(numtypes_by_feats_sorted)
+    numtoks_by_feats_ranked = rank(numtoks_by_feats_sorted)
+
+    xpts = []
+    ypts = []
+ 
+    for feats, numtypes in numtypes_by_feats_ranked.items():
+        xpts.append(numtypes)
+        if feats not in numtoks_by_feats_ranked:
+            print(feats)
+        ypts.append(numtoks_by_feats_ranked[feats])
+
+    ax.plot(xpts, ypts, "o")
+        
+    ax.set_xlabel('Type Rank')
+    ax.set_ylabel('Token Rank')
+    ax.set_title('Type vs Token Rank for ' + pos + " " + title)
+    return
+
+
+
 def make_inflplots(numtokens_by_feats, numtypes_by_feats, pos_by_feats, language, poss):
     fig, axarr = plt.subplots(2, 2, figsize=(12,12))
     fig.suptitle(language + " Inflectional Category Frequencies")
@@ -250,12 +345,35 @@ def make_lemmaplots(numtokens_by_lemma, numtypes_by_lemma, language, pos, cutoff
 #    plt.show()
 
 
+def make_tokentypeplots(numtoks_by_feats, numtypes_by_feats, numtoks_by_lemma, numtypes_by_lemma, POS_by_feats, language, poss):
+    fig, axarr = plt.subplots(2, 2, figsize=(12,12))
+    fig.suptitle(language + " Token vs Type Ranks")
+    for i, pos in enumerate(poss):
+        plot_lemmatokentype_by_rank(axarr[0,i], numtoks_by_lemma, numtypes_by_lemma, language, pos, "Lemma")
+        plot_infltokentype_by_rank(axarr[1,i], numtoks_by_feats, numtypes_by_feats, POS_by_feats, language, pos, "Infl Category")
+
+    plt.savefig("plots/" + language + "_typetoken" + ".png")
+    plt.close(fig)
+
+
 def get_mapdict(language):
     mapdict = {}
-    if language == "UD_English":
+    if language == "UD_Arabicxxxx":
+        mapdict = construct_UD_Arabic(pos_by_feats)
+    elif language == "UD_Czech":
+        mapdict = construct_UD_Czech(pos_by_feats)
+    elif language == "UD_English":
         mapdict = construct_UD_English(pos_by_feats)
     elif language == "UD_Finnish":
         mapdict = construct_UD_Finnish(pos_by_feats)
+    elif language == "UD_German":
+        mapdict = construct_UD_German(pos_by_feats)
+    elif language == "UD_Latin":
+        mapdict = construct_UD_Latin(pos_by_feats)
+    elif language == "UD_Spanish":
+        mapdict = construct_UD_Spanish(pos_by_feats)
+    elif language == "UD_Turkish":
+        mapdict = construct_UD_Turkish(pos_by_feats)
     else:
         print("Cannot map " + language)
     return mapdict
@@ -312,9 +430,10 @@ def map_posfeats(counts_by_feats, language):
 
 fnames_by_dirname = get_fnames()
 for language, fnames in fnames_by_dirname.items():
-    if "UD_Finnish" not in language:
+    if "UD_Spanish" not in language:
         continue
-
+#    if "UD_Spanish" not in language and "UD_Turkish" not in language and "UD_Czech" not in language and "UD_English" not in language and "UD_Finnish" not in language:
+        continue
     print("\n\n")
     numtokens_by_feats, counts_by_feats, numtokens_by_lemma, forms_by_lemma_nofeats, counts_by_lemma_nofeats, forms_by_lemma, counts_by_lemma, pos_by_feats, numtokens = get_counts(fnames)
     counts_by_lemma_mapped, forms_by_lemma_mapped = map_feats_by_lemma(forms_by_lemma, language)
@@ -324,9 +443,6 @@ for language, fnames in fnames_by_dirname.items():
 
 
 
-#    construct_UD_Czech(numtokens_by_feats.keys())
-
-#    print(numtokens_by_feats)
 
     print(language)
     print(numtokens, len(counts_by_lemma))
@@ -352,15 +468,22 @@ for language, fnames in fnames_by_dirname.items():
     print("N: ", avgnoun, maxnoun, numnoun)
     print("V: ", avgverb, maxverb, numverb)
 
-    make_inflplots(numtokens_by_feats_mapped, counts_by_feats_mapped, pos_by_feats_mapped, language+"_cleaned", ("noun", "verb"))
+#    make_tokentypeplots(numtokens_by_feats_mapped, counts_by_feats_mapped, numtokens_by_lemma, counts_by_lemma_mapped, pos_by_feats_mapped, language+"_cleaned", ("noun", "verb"))
+#    make_tokentypeplots(numtokens_by_feats, counts_by_feats, numtokens_by_lemma, counts_by_lemma, pos_by_feats, language, ("noun", "verb"))
 
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "noun", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "verb", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "noun", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "verb", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_mapped, language+"_cleaned", "noun", cutoff=100000)
+#    make_inflplots(numtokens_by_feats_mapped, counts_by_feats_mapped, pos_by_feats_mapped, language+"_cleaned", ("noun", "verb"))
+
+#    make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "noun", cutoff=100000)
+#    make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "verb", cutoff=100000)
+#    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "noun", cutoff=100000)
+#    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "verb", cutoff=100000)
+#    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_mapped, language+"_cleaned", "noun", cutoff=100000)
     make_lemmaplots(numtokens_by_lemma, counts_by_lemma_mapped, language+"_cleaned", "verb", cutoff=100000)
 
+
+
+
+#############3
 #    plot_lemmas_by_numtokens(numtokens_by_lemma, language, "noun", cutoff=1000)
 #    plot_lemmas_by_numtokens(numtokens_by_lemma, language, "verb", cutoff=1000)
 #    plot_lemmas_by_numtypes(counts_by_lemma_nofeats, language+"_nofeats", "noun", cutoff=1000)
