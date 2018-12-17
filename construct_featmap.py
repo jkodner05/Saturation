@@ -1,14 +1,17 @@
 import re
-from feats_maps import *
+
+DELETE = "--DELETE--"
+HIGHLIGHT1 = "--HIGHLIGHT1--"
+HIGHLIGHT2 = "--HIGHLIGHT2--"
 
 def construct_UD_generic(pos_by_feats):
     findnumber = re.compile(r"(number=\w+)")
     featmap = {}
     for feats, poss in pos_by_feats.items():
         newfeats = ""
-        if "noun" in poss:# or "verb" in poss:
+        if "noun" in poss and "verb" not in poss:
             featmap[feats] = newfeats
-        elif "verb" in poss:
+        elif "verb" in poss and "noun" not in poss:
             featmap[feats] = newfeats
 
     print(len(set(featmap.values())),set(featmap.values()))
@@ -33,7 +36,7 @@ def construct_UD_Czech(pos_by_feats):
     featmap = {}
     for feats, poss in pos_by_feats.items():
         newfeats = ""
-        if "noun" in poss:# or "verb" in poss:
+        if "noun" in poss and "verb" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             if number and case:
@@ -41,7 +44,7 @@ def construct_UD_Czech(pos_by_feats):
             else:
                 newfeats=DELETE
             featmap[feats] = newfeats
-        elif "verb" in poss:
+        elif "verb" in poss and "noun" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             verbform = findverbform.search(feats)
@@ -99,7 +102,7 @@ def construct_UD_German(pos_by_feats):
     featmap = {}
     for feats, poss in pos_by_feats.items():
         newfeats = ""
-        if "noun" in poss:# or "verb" in poss:
+        if "noun" in poss and "verb" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             if number and case:
@@ -107,7 +110,7 @@ def construct_UD_German(pos_by_feats):
             else:
                 newfeats=DELETE
             featmap[feats] = newfeats
-        elif "verb" in poss:
+        elif "verb" in poss and "noun" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             verbform = findverbform.search(feats)
@@ -124,6 +127,8 @@ def construct_UD_German(pos_by_feats):
                 newfeats += "|" + person.group(0)
             if tense:
                 newfeats += "|" + tense.group(0)
+                if not verbform and not number:
+                    newfeats = DELETE
             if mood:
                 newfeats += "|" + mood.group(0)
             if not case:
@@ -134,6 +139,15 @@ def construct_UD_German(pos_by_feats):
             if prontype:
                 newfeats = DELETE
         
+            if "person=3" in newfeats and "number=sing" in newfeats and ("tense=past" in newfeats) and "mood=ind" in feats and "voice=pass" not in feats:
+                print("HIGHLIGHT", newfeats)
+                newfeats += "|" + HIGHLIGHT1
+            elif "verbform=part" in feats and "tense=past" in feats and "voice=act" not in feats:
+                newfeats += "|" + HIGHLIGHT1
+            elif "tense=past" in newfeats:
+                newfeats += "|" + HIGHLIGHT2
+
+
             if newfeats[0] == "|":
                 newfeats = newfeats[1:]
             featmap[feats] = newfeats
@@ -144,6 +158,78 @@ def construct_UD_German(pos_by_feats):
 #            print(feat)
 #            print("\t", newfeat)
     return(featmap)
+
+
+def construct_UD_Gothic(pos_by_feats):
+    findnumber = re.compile(r"(number=\w+)")
+    findcase = re.compile(r"(case=\w+)")
+    findprontype = re.compile(r"(prontype=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findvoice = re.compile(r"(voice=\w+)")
+    findperson = re.compile(r"(person=\d)")
+    findaspect = re.compile(r"(aspect=\w+)")
+    findmood = re.compile(r"(mood=\w+)")
+    findtense = re.compile(r"(tense=\w+)")
+    featmap = {}
+    for feats, poss in pos_by_feats.items():
+        newfeats = ""
+        if "noun" in poss and "verb" not in poss:
+            number = findnumber.search(feats)
+            case = findcase.search(feats)
+            if number and case:
+                newfeats = number.group(0) + "|" + case.group(0)
+            else:
+                newfeats=DELETE
+            featmap[feats] = newfeats
+        elif "verb" in poss and "noun" not in poss:
+            number = findnumber.search(feats)
+            case = findcase.search(feats)
+            verbform = findverbform.search(feats)
+            voice = findvoice.search(feats)
+            prontype = findprontype.search(feats)
+            person = findperson.search(feats)
+            aspect = findaspect.search(feats)
+            mood = findmood.search(feats)
+            tense = findtense.search(feats)
+            if verbform:
+                newfeats += "|" + verbform.group(0)
+            if voice:
+                newfeats += "|" + voice.group(0)
+            if person:
+                newfeats += "|" + person.group(0)
+            if tense:
+                newfeats += "|" + tense.group(0)
+            if mood:
+                newfeats += "|" + mood.group(0)
+#            if aspect:
+#                newfeats += "|" + aspect.group(0)
+            if not case:
+                if number:
+                    newfeats += "|" + number.group(0)
+                if not number and verbform and verbform.group(2) == "fin":
+                    newfeats = DELETE
+            if prontype:
+                newfeats = DELETE
+        
+            if "person=3" in newfeats and "number=sing" in newfeats and ("tense=past" in newfeats) and "voice=act" in newfeats and "mood=sub" not in newfeats and "mood=imp" not in newfeats and "mood=opt" not in newfeats:
+                newfeats += "|" + HIGHLIGHT1
+            elif "verbform=part" in feats and "tense=past" in feats and "voice=act" not in feats:
+                newfeats += "|" + HIGHLIGHT1
+            elif "tense=past" in newfeats:
+                newfeats += "|" + HIGHLIGHT2
+                
+            if newfeats[0] == "|":
+                newfeats = newfeats[1:]
+            featmap[feats] = newfeats
+
+#    print(len(set(featmap.values())),set(featmap.values()))
+#    for feat, newfeat in featmap.items():
+#        if feat.count("|") != newfeat.count("|"):
+#            print(feat)
+#            print("\t", newfeat)
+#    exit()
+    return(featmap)
+
 
 
 def construct_UD_English(pos_by_feats):
@@ -200,7 +286,7 @@ def construct_UD_Finnish(pos_by_feats):
     featmap = {}
     for feats, poss in pos_by_feats.items():
         newfeats = ""
-        if "noun" in poss:# or "verb" in poss:
+        if "noun" in poss and "verb" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             if number and case:
@@ -208,7 +294,7 @@ def construct_UD_Finnish(pos_by_feats):
             else:
                 continue
             featmap[feats] = newfeats
-        elif "verb" in poss:
+        elif "verb" in poss and "noun" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             verbform = findverbform.search(feats)
@@ -270,7 +356,7 @@ def construct_UD_Latin(pos_by_feats):
     featmap = {}
     for feats, poss in pos_by_feats.items():
         newfeats = ""
-        if "noun" in poss:# or "verb" in poss:
+        if "noun" in poss and "verb" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             if number and case:
@@ -278,7 +364,7 @@ def construct_UD_Latin(pos_by_feats):
             else:
                 newfeats=DELETE
             featmap[feats] = newfeats
-        elif "verb" in poss:
+        elif "verb" in poss and "noun" not in poss:
             number = findnumber.search(feats)
             verbform = findverbform.search(feats)
             person = findperson.search(feats)
@@ -330,14 +416,14 @@ def construct_UD_Spanish(pos_by_feats):
     featmap = {}
     for feats, poss in pos_by_feats.items():
         newfeats = ""
-        if "noun" in poss:# or "verb" in poss:
+        if "noun" in poss and "verb" not in poss:
             number = findnumber.search(feats)
             if not number:
                 newfeats = DELETE
             else:
                 newfeats = number.group(0)
             featmap[feats] = newfeats
-        elif "verb" in poss:
+        elif "verb" in poss and "noun" not in poss:
             number = findnumber.search(feats)
             verbform = findverbform.search(feats)
             person = findperson.search(feats)
@@ -386,7 +472,7 @@ def construct_UD_Turkish(pos_by_feats):
     featmap = {}
     for feats, poss in pos_by_feats.items():
         newfeats = ""
-        if "noun" in poss:# or "verb" in poss:
+        if "noun" in poss and "verb" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             if number and case:
@@ -394,7 +480,7 @@ def construct_UD_Turkish(pos_by_feats):
             else:
                 newfeats=DELETE
             featmap[feats] = newfeats
-        elif "verb" in poss:
+        elif "verb" in poss and "noun" not in poss:
             number = findnumber.search(feats)
             case = findcase.search(feats)
             verbform = findverbform.search(feats)
