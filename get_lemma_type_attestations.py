@@ -8,6 +8,8 @@ import statistics
 
 PATH = "../../data/ud-treebanks-v2.3"
 
+languages = sys.argv[1:]
+
 def get_fnames():
     fnames_by_language = {}
     for root, dirs, files in walk(PATH):
@@ -81,21 +83,23 @@ def get_counts(fnames):
     return numtokens_by_feats, counts_by_feats, numtokens_by_lemma, forms_by_lemma_nofeats, counts_by_lemma_nofeats, forms_by_lemma, counts_by_lemma, pos_by_feats, numtokens
 
 
-def get_pdgmsize_stats(counts_by_lemma, pos):
+def get_pdgmsize_stats(counts_by_lemma, numtoks_by_lemma, pos):
     avgsize = 0
     maxsize = 0
     maxone = ""
     relevantcount = 1
+    relevanttokens = 0
     for lemma, size in counts_by_lemma.items():
         if lemma[1] == pos:
+            relevanttokens += numtoks_by_lemma[lemma]
             avgsize += size
             if size > maxsize:
                 maxsize = size
                 maxone = lemma
             relevantcount += 1
     avgsize /= relevantcount
-    print(maxone)
-    return avgsize, maxsize, relevantcount, maxone
+#    print(maxone)
+    return avgsize, maxsize, relevantcount-1, maxone, relevanttokens
 
 
 def plot_only_infltypes_by_counts(num_by_feats, pos_by_feats, ylab, subtitle):
@@ -112,7 +116,7 @@ def plot_only_infltypes_by_counts(num_by_feats, pos_by_feats, ylab, subtitle):
     num_by_feats = sorted(num_by_feats.items(), key=lambda kv: kv[1], reverse=True)
     for feats, count in num_by_feats:        
         if "verb" in pos_by_feats[feats]:
-            print(feats, count)
+#            print(feats, count)
             if HIGHLIGHT1 in feats or HIGHLIGHT2 in feats:
                 x.extend([numbins]*count)
                 if HIGHLIGHT1 in feats:
@@ -154,25 +158,41 @@ def plot_infltypes_by_counts(ax, num_by_feats, pos_by_feats, language, pos, subt
 
     x = []
     numbins = 0
-    num_by_feats = sorted(num_by_feats.items(), key=lambda kv: kv[1], reverse=True)
-    for feats, count in num_by_feats:        
+    sorted_num_by_feats = sorted(num_by_feats.items(), key=lambda kv: kv[1], reverse=True)
+    freqs = set([])
+    maxfreq = 0
+    maxfeats = ""
+    for feats, count in sorted_num_by_feats:        
         if pos in pos_by_feats[feats]:
             if pos == "verb":
-                print(feats, count)
+                if count > maxfreq:
+                    maxfreq = count
+                    maxfeats = feats
+                freqs.add(count)
+#                print(feats, count)
             x.extend([numbins]*count)
             numbins += 1
+
+    print(freqs)
+    if(freqs):
+        print(maxfeats)
+        print("Max num type:", max(freqs))
+        print("Mean num type:", statistics.mean(freqs))
+        print("Median num type:", statistics.median(freqs))
+
 
     n, bins, patches = ax.hist(x, numbins)
 
     for i, patch in enumerate(patches):
-        if HIGHLIGHT1 in num_by_feats[i][0]:
+        if HIGHLIGHT1 in sorted_num_by_feats[i][0]:
             patch.set_facecolor("r")
-        elif HIGHLIGHT2 in num_by_feats[i][0]:
+        elif HIGHLIGHT2 in sorted_num_by_feats[i][0]:
             patch.set_facecolor("goldenrod")
 
-    ax.set_xlabel('Inflectional Category')
-    ax.set_ylabel(subtitle + " Count")
-    ax.set_title(language + ": " + subtitle + ' by Infl. Category: ' + pos)
+    fontsize=40
+    ax.set_xlabel('Inflectional Category',fontsize=fontsize)
+    ax.set_ylabel(subtitle + " Count",fontsize=fontsize)
+    ax.set_title(language + ": " + subtitle + ' by Infl. Category: ' + pos,fontsize=fontsize)
     return
 
 
@@ -216,6 +236,7 @@ def plot_lemmas_by_numtypes(ax, numtypes_by_lemma, pos, cutoff=0):
                 break
 
     print("Max 10 num type:", numtypes_by_lemma[0:20])
+    print("Max num type:", max(freqs))
     print("Mean num type:", statistics.mean(freqs))
     print("Median num type:", statistics.median(freqs))
 
@@ -223,9 +244,14 @@ def plot_lemmas_by_numtypes(ax, numtypes_by_lemma, pos, cutoff=0):
         return
 
     n, bins, patches = ax.hist(x, numbins)
-    ax.set_xlabel('Lemma')
-    ax.set_ylabel('Attested Inflected Form Type Count')
-    ax.set_title('Infl Form Type Count by Lemma')
+#    for i, patch in enumerate(patches):
+#        patch.set_facecolor("grey")
+
+    fontsize = 40
+    ax.tick_params(labelsize=20)
+    ax.set_xlabel('Ranked Lemmas', fontsize=fontsize)
+    ax.set_ylabel('Infl Form Type Count', fontsize=fontsize)
+#    ax.set_title('Infl Form Type Counts by Lemma', fontsize=fontsize)
     return
 
 
@@ -360,8 +386,8 @@ def plot_infltokentype_by_rank(ax, numtoks_by_feats, numtypes_by_feats, POS_by_f
  
     for feats, numtypes in numtypes_by_feats_ranked.items():
         xpts.append(numtypes)
-        if feats not in numtoks_by_feats_ranked:
-            print(feats)
+#        if feats not in numtoks_by_feats_ranked:
+#            print(feats)
         ypts.append(numtoks_by_feats_ranked[feats])
 
     ax.plot(xpts, ypts, "o")
@@ -382,7 +408,12 @@ def make_inflplots(numtokens_by_feats, numtypes_by_feats, pos_by_feats, language
 
     plt.savefig("plots/" + language + "_infl" + ".png")
     plt.close(fig)
-    
+
+#    fig, axarr = plt.subplots(figsize=(12,12))
+#    plot_infltypes_by_counts(axarr, numtypes_by_feats, pos_by_feats, language, "verb", "Types")
+#    plt.savefig("plots/" + language + "_infl" + ".png")
+#    plt.close(fig)
+
 
 def make_lemmaplots(numtokens_by_lemma, numtypes_by_lemma, language, pos, cutoff=0):
     fig, axarr = plt.subplots(2, 2, figsize=(12,12))
@@ -395,6 +426,13 @@ def make_lemmaplots(numtokens_by_lemma, numtypes_by_lemma, language, pos, cutoff
     
     plt.savefig("plots/" + language + "_" + pos + ".png")
     plt.close(fig)
+
+    fig, axarr = plt.subplots(figsize=(12,12))
+    fig.suptitle("UDT " + language.split("_")[1], fontsize=40)
+    plot_lemmas_by_numtypes(axarr, numtypes_by_lemma, pos, cutoff=cutoff)
+    plt.savefig("plots/" + language + "_" + pos + ".png")
+    plt.close(fig)
+
 #    fig.tight_layout()
 #    plt.show()
 
@@ -410,7 +448,7 @@ def make_tokentypeplots(numtoks_by_feats, numtypes_by_feats, numtoks_by_lemma, n
     plt.close(fig)
 
 
-def get_mapdict(language):
+def get_mapdict(pos_by_feats, language):
     mapdict = {}
     if language == "UD_Arabicxxxx":
         mapdict = construct_UD_Arabic(pos_by_feats)
@@ -434,8 +472,8 @@ def get_mapdict(language):
         print("Cannot map " + language)
     return mapdict
 
-def map_feats_by_lemma(forms_by_lemma, language):
-    mapdict = get_mapdict(language)
+def map_feats_by_lemma(forms_by_lemma, pos_by_feats, language):
+    mapdict = get_mapdict(pos_by_feats, language)
     forms_by_lemma_mapped = {}
     featset = set([])
     for lemmapos, formfeatss in forms_by_lemma.items():
@@ -447,7 +485,7 @@ def map_feats_by_lemma(forms_by_lemma, language):
             if feats not in mapdict:
                 continue
             mappedfeats = mapdict[feats]
-            if mappedfeats == DELETE:
+            if DELETE in mappedfeats:
                 continue
             featset.add(mappedfeats)
             forms_by_lemma_mapped[lemmapos].add((mappedfeats))
@@ -456,14 +494,14 @@ def map_feats_by_lemma(forms_by_lemma, language):
     return counts_by_lemma_mapped, forms_by_lemma_mapped
     
 
-def map_numfeats(counts_by_feats, language):
-    mapdict = get_mapdict(language)
+def map_numfeats(counts_by_feats, pos_by_feats, language):
+    mapdict = get_mapdict(pos_by_feats, language)
     counts_by_feats_mapped = {}
     for feats, count in counts_by_feats.items():
         if feats not in mapdict:
             continue
         mappedfeats = mapdict[feats]
-        if mappedfeats == DELETE:
+        if DELETE in mappedfeats:
             continue
         if mappedfeats not in counts_by_feats_mapped:
             counts_by_feats_mapped[mappedfeats] = 0
@@ -471,85 +509,94 @@ def map_numfeats(counts_by_feats, language):
     return counts_by_feats_mapped
 
 
-def map_posfeats(counts_by_feats, language):
-    mapdict = get_mapdict(language)
+def map_posfeats(counts_by_feats, pos_by_feats, language):
+    mapdict = get_mapdict(pos_by_feats, language)
     pos_by_feats_mapped = {}
     for feats, pos in counts_by_feats.items():
         if feats not in mapdict:
             continue
         mappedfeats = mapdict[feats]
-        if mappedfeats == DELETE:
+        if DELETE in mappedfeats:
             continue
         pos_by_feats_mapped[mappedfeats] = pos_by_feats[feats]
     return pos_by_feats_mapped
 
 
-fnames_by_dirname = get_fnames()
-for language, fnames in fnames_by_dirname.items():
-    if "UD_German" not in language:
-        continue
-#    if "UD_Spanish" not in language and "UD_Turkish" not in language and "UD_Czech" not in language and "UD_English" not in language and "UD_Finnish" not in language:
-        continue
-    print("\n\n")
-    numtokens_by_feats, counts_by_feats, numtokens_by_lemma, forms_by_lemma_nofeats, counts_by_lemma_nofeats, forms_by_lemma, counts_by_lemma, pos_by_feats, numtokens = get_counts(fnames)
-    counts_by_lemma_mapped, forms_by_lemma_mapped = map_feats_by_lemma(forms_by_lemma, language)
-    counts_by_feats_mapped = map_numfeats(counts_by_feats, language)
-    numtokens_by_feats_mapped = map_numfeats(numtokens_by_feats, language)
-    pos_by_feats_mapped = map_posfeats(pos_by_feats, language)
+def main():
+    fnames_by_dirname = get_fnames()
+    for language, fnames in fnames_by_dirname.items():
+        is_testlang = False
+        for testlang in languages:
+            if testlang in language:
+                is_testlang = True
+        if not is_testlang:
+            continue
+
+        numtokens_by_feats, counts_by_feats, numtokens_by_lemma, forms_by_lemma_nofeats, counts_by_lemma_nofeats, forms_by_lemma, counts_by_lemma, pos_by_feats, numtokens = get_counts(fnames)
+        counts_by_lemma_mapped, forms_by_lemma_mapped = map_feats_by_lemma(forms_by_lemma, pos_by_feats, language)
+        counts_by_feats_mapped = map_numfeats(counts_by_feats,  pos_by_feats, language)
+        numtokens_by_feats_mapped = map_numfeats(numtokens_by_feats,  pos_by_feats, language)
+        pos_by_feats_mapped = map_posfeats(pos_by_feats,  pos_by_feats, language)
+
+        print("\n\n")
+        print(language)
+        print(numtokens, len(counts_by_lemma))
+#        for i, form in enumerate(forms_by_lemma_mapped[("et","verb")]):
+#            if "=vnoun" in form:
+#                print(i, form)
+
+
+        #bybee
+    #    for verb in bybee1985strong:
+    #        if (verb, "verb") in counts_by_lemma_mapped:
+    #            print(verb, counts_by_lemma_mapped[(verb, "verb")], forms_by_lemma_mapped[(verb,"verb")])
+    #        else:
+    #            print(verb, 0)
+
+#        avgnoun, maxnoun, numnoun, maxnounval, nountokens = get_pdgmsize_stats(counts_by_lemma_mapped, numtokens_by_lemma, "noun")
+        avgverb, maxverb, numverb, maxverbval, verbtokens = get_pdgmsize_stats(counts_by_lemma_mapped, numtokens_by_lemma, "verb")
+#        print("N: ", avgnoun, maxnoun, numnoun, nountokens, nountokens/numnoun)
+        print("V: ", avgverb, maxverb, numverb, verbtokens, verbtokens/numverb)
+
+    #    avgnoun, maxnoun, numnoun, maxnounval, nountokens = get_pdgmsize_stats(counts_by_lemma_nofeats, numtokens_by_lemma, "noun")
+    #    avgverb, maxverb, numverb, maxverbval, verbtokens = get_pdgmsize_stats(counts_by_lemma_nofeats, numtokens_by_lemma, "verb")
+    #    print("N: ", avgnoun, maxnoun, numnoun)
+    #    print("V: ", avgverb, maxverb, numverb)
+    #    avgnoun, maxnoun, numnoun, maxnounval, nountokens = get_pdgmsize_stats(counts_by_lemma, numtokens_by_lemma, "noun")
+    #    avgverb, maxverb, numverb, maxverbval, verbtokens = get_pdgmsize_stats(counts_by_lemma, numtokens_by_lemma, "verb")
+    #    print("N: ", avgnoun, maxnoun, numnoun)
+    #    print("V: ", avgverb, maxverb, numverb)
+
+    #    make_tokentypeplots(numtokens_by_feats_mapped, counts_by_feats_mapped, numtokens_by_lemma, counts_by_lemma_mapped, pos_by_feats_mapped, language+"_cleaned", ("noun", "verb"))
+    #    make_tokentypeplots(numtokens_by_feats, counts_by_feats, numtokens_by_lemma, counts_by_lemma, pos_by_feats, language, ("noun", "verb"))
+
+    #    make_inflplots(numtokens_by_feats_mapped, counts_by_feats_mapped, pos_by_feats_mapped, language+"_cleaned", ("noun", "verb"))
+
+    #    make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "noun", cutoff=100000)
+        make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "verb", cutoff=100000)
+    #    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "noun", cutoff=100000)
+        make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "verb", cutoff=100000)
+    #    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_mapped, language+"_cleaned", "noun", cutoff=100000)
+        make_lemmaplots(numtokens_by_lemma, counts_by_lemma_mapped, language+"_cleaned", "verb", cutoff=100000)
+    ############
+    #    plot_only_infltypes_by_counts(counts_by_feats_mapped, pos_by_feats_mapped, "# Lemmas Attested", "Types")
+    #    plot_only_infltypes_by_counts(numtokens_by_feats_mapped, pos_by_feats_mapped, "# Tokens", "Tokens")
 
 
 
 
-    print(language)
-    print(numtokens, len(counts_by_lemma))
+    #############3
+    #    plot_lemmas_by_numtokens(numtokens_by_lemma, language, "noun", cutoff=1000)
+    #    plot_lemmas_by_numtokens(numtokens_by_lemma, language, "verb", cutoff=1000)
+    #    plot_lemmas_by_numtypes(counts_by_lemma_nofeats, language+"_nofeats", "noun", cutoff=1000)
+    #    plot_lemmas_by_numtypes(counts_by_lemma_nofeats, language+"_nofeats", "verb", cutoff=1000)
+    #    plot_lemmas_by_numtypes(counts_by_lemma, language, "noun", cutoff=1000)
+    #    plot_lemmas_by_numtypes(counts_by_lemma, language, "verb", cutoff=1000)
 
-    #bybee
-#    for verb in bybee1985strong:
-#        if (verb, "verb") in counts_by_lemma_mapped:
-#            print(verb, counts_by_lemma_mapped[(verb, "verb")], forms_by_lemma_mapped[(verb,"verb")])
-#        else:
-#            print(verb, 0)
+    #    plot_numtypes_by_lemmas(counts_by_lemma_nofeats, language+"_nofeats", "noun")
+    #    plot_numtypes_by_lemmas(counts_by_lemma_nofeats, language+"_nofeats", "verb")
+    #    plot_numtypes_by_lemmas(counts_by_lemma, language, "noun")
+    #    plot_numtypes_by_lemmas(counts_by_lemma, language, "verb")
 
-
-    avgnoun, maxnoun, numnoun, maxnounval = get_pdgmsize_stats(counts_by_lemma_mapped, "noun")
-    avgverb, maxverb, numverb, maxverbval = get_pdgmsize_stats(counts_by_lemma_mapped, "verb")
-    print("N: ", avgnoun, maxnoun, numnoun)
-    print("V: ", avgverb, maxverb, numverb)
-    avgnoun, maxnoun, numnoun, maxnounval = get_pdgmsize_stats(counts_by_lemma_nofeats, "noun")
-    avgverb, maxverb, numverb, maxverbval = get_pdgmsize_stats(counts_by_lemma_nofeats, "verb")
-    print("N: ", avgnoun, maxnoun, numnoun)
-    print("V: ", avgverb, maxverb, numverb)
-    avgnoun, maxnoun, numnoun, maxnounval = get_pdgmsize_stats(counts_by_lemma, "noun")
-    avgverb, maxverb, numverb, maxverbval = get_pdgmsize_stats(counts_by_lemma, "verb")
-    print("N: ", avgnoun, maxnoun, numnoun)
-    print("V: ", avgverb, maxverb, numverb)
-
-    make_tokentypeplots(numtokens_by_feats_mapped, counts_by_feats_mapped, numtokens_by_lemma, counts_by_lemma_mapped, pos_by_feats_mapped, language+"_cleaned", ("noun", "verb"))
-    make_tokentypeplots(numtokens_by_feats, counts_by_feats, numtokens_by_lemma, counts_by_lemma, pos_by_feats, language, ("noun", "verb"))
-
-#    plot_only_infltypes_by_counts(counts_by_feats_mapped, pos_by_feats_mapped, "# Lemmas Attested", "Types")
-#    plot_only_infltypes_by_counts(numtokens_by_feats_mapped, pos_by_feats_mapped, "# Tokens", "Tokens")
-    make_inflplots(numtokens_by_feats_mapped, counts_by_feats_mapped, pos_by_feats_mapped, language+"_cleaned", ("noun", "verb"))
-
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "noun", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "verb", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "noun", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_nofeats, language+"_surfaceforms", "verb", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_mapped, language+"_cleaned", "noun", cutoff=100000)
-    make_lemmaplots(numtokens_by_lemma, counts_by_lemma_mapped, language+"_cleaned", "verb", cutoff=100000)
-
-
-
-
-#############3
-#    plot_lemmas_by_numtokens(numtokens_by_lemma, language, "noun", cutoff=1000)
-#    plot_lemmas_by_numtokens(numtokens_by_lemma, language, "verb", cutoff=1000)
-#    plot_lemmas_by_numtypes(counts_by_lemma_nofeats, language+"_nofeats", "noun", cutoff=1000)
-#    plot_lemmas_by_numtypes(counts_by_lemma_nofeats, language+"_nofeats", "verb", cutoff=1000)
-#    plot_lemmas_by_numtypes(counts_by_lemma, language, "noun", cutoff=1000)
-#    plot_lemmas_by_numtypes(counts_by_lemma, language, "verb", cutoff=1000)
-
-#    plot_numtypes_by_lemmas(counts_by_lemma_nofeats, language+"_nofeats", "noun")
-#    plot_numtypes_by_lemmas(counts_by_lemma_nofeats, language+"_nofeats", "verb")
-#    plot_numtypes_by_lemmas(counts_by_lemma, language, "noun")
-#    plot_numtypes_by_lemmas(counts_by_lemma, language, "verb")
+if __name__=="__main__":
+    main()

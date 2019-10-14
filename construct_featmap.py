@@ -140,7 +140,7 @@ def construct_UD_German(pos_by_feats):
                 newfeats = DELETE
         
             if "person=3" in newfeats and "number=sing" in newfeats and ("tense=past" in newfeats) and "mood=ind" in feats and "voice=pass" not in feats:
-                print("HIGHLIGHT", newfeats)
+#                print("HIGHLIGHT", newfeats)
                 newfeats += "|" + HIGHLIGHT1
             elif "verbform=part" in feats and "tense=past" in feats and "voice=act" not in feats:
                 newfeats += "|" + HIGHLIGHT1
@@ -261,13 +261,22 @@ def construct_UD_English(pos_by_feats):
 
             if "number=sing" in feats and "tense=" not in feats and "verform=" not in feats:
                 newfeats = "sg"
+                if "verb" in poss:
+                    newfeats = DELETE
             elif "number=plur" in feats and "tense=" not in feats and "verform=" not in feats:
                 newfeats = "pl"
+                if "verb" in poss:
+                    newfeats = DELETE
 
             if newfeats == feats:
                 newfeats = DELETE
             featmap[feats] = newfeats
 
+#    print(len(set(featmap.keys())),len(set(featmap.values())),set(featmap.values()))
+#    for feat, newfeat in featmap.items():
+#        if feat.count("|") != newfeat.count("|"):
+#            print(feat)
+#            print("\t", newfeat)
     return featmap
 
 
@@ -390,7 +399,7 @@ def construct_UD_Latin(pos_by_feats):
                     newfeats += "|" + aspect.group(0)
                 if verbform.group(2) == "fin":
                     if not person or not number or not mood or not voice:
-                        print(feats)
+#                        print(feats)
                         newfeats = DELETE
             else:
                 newfeats = DELETE    
@@ -450,10 +459,10 @@ def construct_UD_Spanish(pos_by_feats):
 #            print(feats, "\t", newfeats, verbform.group(2))
             featmap[feats] = newfeats
 #    print(len(set(featmap.values())),set(featmap.values()))    
-    for feat, newfeat in featmap.items():
-        if feat.count("|") != newfeat.count("|"):
-            print(feat)
-            print("\t", newfeat)
+#    for feat, newfeat in featmap.items():
+#        if feat.count("|") != newfeat.count("|"):
+#            print(feat)
+#            print("\t", newfeat)
     return featmap
 
 
@@ -467,7 +476,6 @@ def construct_UD_Turkish(pos_by_feats):
     findpolarity = re.compile(r"(polarity=\w+)")
     findmood = re.compile(r"(mood=\w+)")
     findaspect = re.compile(r"(aspect=\w+)")
-    findevident = re.compile(r"(evident=\w+)")
     findtense = re.compile(r"(tense=\w+)")
     featmap = {}
     for feats, poss in pos_by_feats.items():
@@ -491,10 +499,11 @@ def construct_UD_Turkish(pos_by_feats):
             mood = findmood.search(feats)
             polarity = findpolarity.search(feats)
             aspect = findaspect.search(feats)
-            evident = findevident.search(feats)
             tense = findtense.search(feats)
             if verbform:
                 newfeats += verbform.group(0)
+                if "vnoun" in verbform.group(0):
+                    newfeats = DELETE
             if voice:
                 newfeats += "|" + voice.group(0)
             if partform:
@@ -507,19 +516,17 @@ def construct_UD_Turkish(pos_by_feats):
                 newfeats += "|" + mood.group(0)
             if tense:
                 newfeats += "|" + tense.group(0)
-            if evident:
-                newfeats += "|" + evident.group(0)
             if aspect:
                 newfeats += "|" + aspect.group(0)
             if not case:
                 if number:
                     newfeats += "|" + number.group(0)
-
+            
             if newfeats[0] == "|":
                 newfeats = newfeats[1:]
             featmap[feats] = newfeats
 
-    print(len(set(featmap.keys())),len(set(featmap.values())),set(featmap.values()))
+#    print(len(set(featmap.keys())),len(set(featmap.values())),set(featmap.values()))
 #    for feat, newfeat in featmap.items():
 #        if feat.count("|") != newfeat.count("|"):
 #            print(feat)
