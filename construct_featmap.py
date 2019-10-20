@@ -22,6 +22,223 @@ def construct_UD_generic(pos_by_feats):
     exit()
 
 
+def construct_UD_Arabic(pos_by_feats):
+    findnumber = re.compile(r"(number=\w+)")
+    findcase = re.compile(r"(case=\w+)")
+    findgender = re.compile(r"(gender=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findprontype = re.compile(r"(prontype=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findvoice = re.compile(r"(voice=\w+)")
+    findperson = re.compile(r"(person=\d)")
+    findmood = re.compile(r"(mood=\w+)")
+    findtense = re.compile(r"(tense=\w+)")
+    findaspect = re.compile(r"(aspect=\w+)")
+    findsubcat = re.compile(r"(subcat=\w+)")
+    findpolarity = re.compile(r"(polarity=\w+)")
+    finddefinite = re.compile(r"(definite=\w+)")
+#    findstyle = re.compile(r"(style=\w+)")
+#    findtypo = re.compile(r"(typo=\w+)")
+#    findabbr = re.compile(r"(abbr=\w+)")
+    featmap = {}
+    for feats, poss in pos_by_feats.items():
+        newfeats = ""
+        if "noun" in poss and "verb" not in poss:
+            featmap[feats] = newfeats
+        elif "verb" in poss and "noun" not in poss:
+            number = findnumber.search(feats)
+            verbform = findverbform.search(feats)
+            voice = findvoice.search(feats)
+            case = findcase.search(feats)
+            gender = findgender.search(feats)
+            prontype = findprontype.search(feats)
+            person = findperson.search(feats)
+            mood = findmood.search(feats)
+            tense = findtense.search(feats)
+            aspect = findaspect.search(feats)
+            polarity = findpolarity.search(feats)
+            definite = finddefinite.search(feats)
+#            style = findstyle.search(feats)
+#            typo = findtypo.search(feats)
+#            abbr = findabbr.search(feats)
+            if number:
+                newfeats += "|" + number.group(0)
+            if gender:
+                newfeats += "|" + gender.group(0)
+            if verbform:
+                newfeats += "|" + verbform.group(0)
+            if voice:
+                newfeats += "|" + voice.group(0)
+            if person:
+                newfeats += "|" + person.group(0)
+            if tense:
+                newfeats += "|" + tense.group(0)
+            if mood:
+                newfeats += "|" + mood.group(0)
+            if aspect:
+                newfeats += "|" + aspect.group(0)
+            if polarity:
+                newfeats += "|" + polarity.group(0)
+            
+            if verbform and "=fin" in verbform.group(0):
+                if not number:
+                    newfeats = "NO NUMBER!!!!!!!!!!!!!!!!!"
+#                    newfeats = DELETE
+                if not voice:
+                    if mood and "=imp" not in mood.group(0):
+#                        newfeats = "NO VOICE!!!!!!!!!!!!!!!!!"
+                        newfeats = DELETE
+                if not person:
+                    if mood and "=imp" not in mood.group(0):
+#                    newfeats = "NO PERSON!!!!!!!!!!!!!!!!!"
+                        newfeats = DELETE
+                if not tense and not aspect:
+                    if mood and "=imp" not in mood.group(0):
+#                    newfeats = "NO TENSE OR ASPECT!!!!!!!!!!!!!!!!!"
+                        newfeats = DELETE
+                if not mood:
+                    newfeats = "NO MOOD!!!!!!!!!!!!!!!!!"
+#                    newfeats = DELETE
+#                    newfeats = DELETE
+#                if not polarity:
+#                    newfeats = "NO POLARITY!!!!!!!!!!!!!!!!!"
+#                    newfeats = DELETE
+
+            if case:
+                newfeats = DELETE
+            if definite:
+                newfeats = DELETE
+#            if style:
+#                newfeats = DELETE
+#            if typo:
+#                newfeats = DELETE
+#            if abbr:
+#                newfeats = DELETE
+#            if connegative:
+#                newfeats = DELETE
+
+            if newfeats[0] == "|":
+                newfeats = newfeats[1:]
+            featmap[feats] = newfeats
+
+#    print(len(set(featmap.values())),set(featmap.values()))
+#    for feat, newfeat in featmap.items():
+#        if newfeat:
+#            if feat.count("|") != newfeat.count("|") and newfeat != DELETE:
+#                print(feat.strip())
+#                print("\t", newfeat.strip())
+#    exit()
+    return featmap
+
+
+
+
+def construct_UD_Armenian(pos_by_feats):
+    findnumber = re.compile(r"(number=\w+)")
+    findcase = re.compile(r"(case=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findprontype = re.compile(r"(prontype=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findvoice = re.compile(r"(voice=\w+)")
+    findperson = re.compile(r"(person=\d)")
+    findmood = re.compile(r"(mood=\w+)")
+    findtense = re.compile(r"(tense=\w+)")
+    findaspect = re.compile(r"(aspect=\w+)")
+    findsubcat = re.compile(r"(subcat=\w+)")
+    findpolarity = re.compile(r"(polarity=\w+)")
+    findstyle = re.compile(r"(style=\w+)")
+    findtypo = re.compile(r"(typo=\w+)")
+    findabbr = re.compile(r"(abbr=\w+)")
+    findconnegative = re.compile(r"(connegative=\w+)")
+    featmap = {}
+    for feats, poss in pos_by_feats.items():
+        newfeats = ""
+        if "noun" in poss and "verb" not in poss:
+            featmap[feats] = newfeats
+        elif "verb" in poss and "noun" not in poss:
+            number = findnumber.search(feats)
+            verbform = findverbform.search(feats)
+            voice = findvoice.search(feats)
+            case = findcase.search(feats)
+            prontype = findprontype.search(feats)
+            person = findperson.search(feats)
+            mood = findmood.search(feats)
+            tense = findtense.search(feats)
+            aspect = findaspect.search(feats)
+            subcat = findsubcat.search(feats)
+            polarity = findpolarity.search(feats)
+            style = findstyle.search(feats)
+            typo = findtypo.search(feats)
+            abbr = findabbr.search(feats)
+            connegative = findconnegative.search(feats)
+            if number:
+                newfeats += "|" + number.group(0)
+            if verbform:
+                newfeats += "|" + verbform.group(0)
+            if voice:
+                newfeats += "|" + voice.group(0)
+            if person:
+                newfeats += "|" + person.group(0)
+            if tense:
+                newfeats += "|" + tense.group(0)
+            if mood:
+                newfeats += "|" + mood.group(0)
+            if aspect:
+                newfeats += "|" + aspect.group(0)
+            if subcat:
+                newfeats += "|" + subcat.group(0)
+            if polarity:
+                newfeats += "|" + polarity.group(0)
+            
+            if verbform and "=fin" in verbform.group(0):
+                if not number:
+                    newfeats = "NO NUMBER!!!!!!!!!!!!!!!!!"
+                    newfeats = DELETE
+                if not voice:
+                    newfeats = "NO VOICE!!!!!!!!!!!!!!!!!"
+                    newfeats = DELETE
+                if not person:
+                    newfeats = "NO PERSON!!!!!!!!!!!!!!!!!"
+                    newfeats = DELETE
+                if not tense or not aspect:
+                    if voice.group(0) != "=mid":
+                        newfeats = "NO TENSE OR ASPECT!!!!!!!!!!!!!!!!!"
+                        newfeats = DELETE
+                if not mood:
+                    newfeats = "NO MOOD!!!!!!!!!!!!!!!!!"
+                    newfeats = DELETE
+                if not subcat:
+                    newfeats = "NO SUBCAT!!!!!!!!!!!!!!!!!"
+                    newfeats = DELETE
+                if not polarity:
+                    newfeats = "NO POLARITY!!!!!!!!!!!!!!!!!"
+                    newfeats = DELETE
+ 
+            if case:
+                newfeats = DELETE
+            if style:
+                newfeats = DELETE
+            if typo:
+                newfeats = DELETE
+            if abbr:
+                newfeats = DELETE
+            if connegative:
+                newfeats = DELETE
+
+            if newfeats[0] == "|":
+                newfeats = newfeats[1:]
+            featmap[feats] = newfeats
+
+#    print(len(set(featmap.values())),set(featmap.values()))
+#    for feat, newfeat in featmap.items():
+#        if newfeat:
+#            if feat.count("|") != newfeat.count("|") and newfeat != DELETE:
+#                print(feat.strip())
+#                print("\t", newfeat.strip())
+    return(featmap)
+
+
+
 def construct_UD_Czech(pos_by_feats):
     findnumber = re.compile(r"(number=\w+)")
     findcase = re.compile(r"(case=\w+)")
@@ -352,6 +569,93 @@ def construct_UD_Finnish(pos_by_feats):
     return featmap
 
 
+def construct_UD_Hungarian(pos_by_feats):
+    findnumber = re.compile(r"(number=\w+)")
+    findcase = re.compile(r"(case=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findprontype = re.compile(r"(prontype=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findvoice = re.compile(r"(voice=\w+)")
+    findperson = re.compile(r"(person=\d)")
+    findmood = re.compile(r"(mood=\w+)")
+    findtense = re.compile(r"(tense=\w+)")
+    findaspect = re.compile(r"(aspect=\w+)")
+    findsubcat = re.compile(r"(subcat=\w+)")
+    findpolarity = re.compile(r"(polarity=\w+)")
+    findstyle = re.compile(r"(style=\w+)")
+    findtypo = re.compile(r"(typo=\w+)")
+    findabbr = re.compile(r"(abbr=\w+)")
+    finddefinite = re.compile(r"(definite=\w+)")
+    findconnegative = re.compile(r"(connegative=\w+)")
+    featmap = {}
+    for feats, poss in pos_by_feats.items():
+        newfeats = ""
+        if "noun" in poss and "verb" not in poss:
+            featmap[feats] = newfeats
+        elif "verb" in poss and "noun" not in poss:
+            number = findnumber.search(feats)
+            verbform = findverbform.search(feats)
+            voice = findvoice.search(feats)
+            case = findcase.search(feats)
+            prontype = findprontype.search(feats)
+            person = findperson.search(feats)
+            mood = findmood.search(feats)
+            tense = findtense.search(feats)
+            aspect = findaspect.search(feats)
+            subcat = findsubcat.search(feats)
+            polarity = findpolarity.search(feats)
+            style = findstyle.search(feats)
+            typo = findtypo.search(feats)
+            abbr = findabbr.search(feats)
+            definite = finddefinite.search(feats)
+            connegative = findconnegative.search(feats)
+            if number:
+                newfeats += "|" + number.group(0)
+            if definite:
+                newfeats += "|" + definite.group(0)
+            if verbform:
+                newfeats += "|" + verbform.group(0)
+            if voice:
+                newfeats += "|" + voice.group(0)
+            if person:
+                newfeats += "|" + person.group(0)
+            if tense:
+                newfeats += "|" + tense.group(0)
+            if mood:
+                newfeats += "|" + mood.group(0)
+            if aspect:
+                newfeats += "|" + aspect.group(0)
+            if subcat:
+                newfeats += "|" + subcat.group(0)
+            if polarity:
+                newfeats += "|" + polarity.group(0)
+            
+            if case:
+                newfeats = DELETE
+            if style:
+                newfeats = DELETE
+            if typo:
+                newfeats = DELETE
+            if abbr:
+                newfeats = DELETE
+            if connegative:
+                newfeats = DELETE
+
+            if newfeats[0] == "|":
+                newfeats = newfeats[1:]
+            featmap[feats] = newfeats
+
+#    print(len(set(featmap.values())),set(featmap.values()))
+#    for feat, newfeat in featmap.items():
+#        if newfeat:
+#            if feat.count("|") != newfeat.count("|"):
+#                print(feat.strip())
+#                print("\t", newfeat.strip())
+#    exit()
+    return(featmap)
+
+
+
 def construct_UD_Latin(pos_by_feats):
     findnumber = re.compile(r"(number=(plur|sing))")
     findcase = re.compile(r"(case=\w+)")
@@ -414,6 +718,176 @@ def construct_UD_Latin(pos_by_feats):
     exit()
 
 
+def construct_UD_Portuguese(pos_by_feats):
+    findnumber = re.compile(r"(number=(plur|sing))")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findperson = re.compile(r"(person=\d)")
+    findmood = re.compile(r"(mood=\w+)")
+    findvoice = re.compile(r"(voice=\w+)")
+    findgender = re.compile(r"(gender=\d)")
+    findtense = re.compile(r"(tense=\w+)")
+
+    featmap = {}
+    for feats, poss in pos_by_feats.items():
+        newfeats = ""
+        if "_" in feats:
+            print("EMPTY")
+            newfeats = DELETE
+
+        if "verb" in poss:
+            number = findnumber.search(feats)
+            verbform = findverbform.search(feats)
+            person = findperson.search(feats)
+            mood = findmood.search(feats)
+            gender = findgender.search(feats)
+            voice = findvoice.search(feats)
+            tense = findtense.search(feats)
+            if verbform:
+                newfeats = verbform.group(0)
+                if not gender and not verbform.group(2) == "part":
+                    if number:
+                        newfeats += "|" + number.group(0)
+                if person:
+                    newfeats += "|" + person.group(0)
+                if voice:
+                    newfeats += "|" + voice.group(0)
+                if mood:
+                    newfeats += "|" + mood.group(0)
+                if tense:
+                    newfeats += "|" + tense.group(0)
+                if verbform.group(2) == "fin":
+                    if not person or not number or not mood or not tense:
+                        newfeats = DELETE
+                    if gender:
+                        newfeats = DELETE
+                if verbform.group(2) != "fin":
+                    newfeats = DELETE
+            else:
+                newfeats = DELETE    
+
+
+#            print(feats, "\t", newfeats, verbform.group(2))
+            featmap[feats] = newfeats
+#    print(len(set(featmap.values())),set(featmap.values()))    
+#    for feat, newfeat in featmap.items():
+#        if feat.count("|") != newfeat.count("|"):
+#            print(feat)
+#            print("\t", newfeat)
+#    exit()
+    return featmap
+
+
+def construct_UD_Russian(pos_by_feats):
+    findnumber = re.compile(r"(number=\w+)")
+    findcase = re.compile(r"(case=\w+)")
+    findgender = re.compile(r"(gender=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findprontype = re.compile(r"(prontype=\w+)")
+    findverbform = re.compile(r"(verbform=(\w+))")
+    findvoice = re.compile(r"(voice=\w+)")
+    findperson = re.compile(r"(person=\d)")
+    findmood = re.compile(r"(mood=\w+)")
+    findtense = re.compile(r"(tense=\w+)")
+    findaspect = re.compile(r"(aspect=\w+)")
+    findstyle = re.compile(r"(style=\w+)")
+    findtypo = re.compile(r"(typo=\w+)")
+    findabbr = re.compile(r"(abbr=\w+)")
+    finddegree = re.compile(r"(degree=\w+)")
+    findvariant = re.compile(r"(variant=\w+)")
+    featmap = {}
+    for feats, poss in pos_by_feats.items():
+        newfeats = ""
+        if "noun" in poss and "verb" not in poss:
+            featmap[feats] = newfeats
+        elif "verb" in poss and "noun" not in poss:
+            number = findnumber.search(feats)
+            verbform = findverbform.search(feats)
+            voice = findvoice.search(feats)
+            case = findcase.search(feats)
+            gender = findgender.search(feats)
+            prontype = findprontype.search(feats)
+            person = findperson.search(feats)
+            mood = findmood.search(feats)
+            tense = findtense.search(feats)
+            aspect = findaspect.search(feats)
+            style = findstyle.search(feats)
+            typo = findtypo.search(feats)
+            abbr = findabbr.search(feats)
+            degree = finddegree.search(feats)
+            variant = findvariant.search(feats)
+            if number:
+                newfeats += "|" + number.group(0)
+            if verbform:
+                newfeats += "|" + verbform.group(0)
+            if gender:
+                newfeats += "|" + gender.group(0)
+            if person:
+                newfeats += "|" + person.group(0)
+            if tense:
+                newfeats += "|" + tense.group(0)
+            if mood:
+                newfeats += "|" + mood.group(0)
+                if "=ind" in mood.group(0):
+                    if not voice:
+                        newfeats += "|voice=act"
+            if voice:
+                if verbform and "=inf" not in verbform.group(0) and "=conv" not in verbform.group(0):
+                    newfeats += "|" + voice.group(0)
+            if aspect:
+                if verbform and "=inf" not in verbform.group(0):
+                    newfeats += "|" + aspect.group(0)
+            
+            if verbform and "=fin" in verbform.group(0):
+                if not number:
+                    newfeats = "NO NUMBER!!!!!!!!!!!!!!!!!"
+                    #newfeats = DELETE
+#                if not voice:
+#                    newfeats = "NO VOICE!!!!!!!!!!!!!!!!!"
+#                    #newfeats = DELETE
+                if not person:
+                    if "=imp" not in aspect.group(0):
+                        newfeats = "NO PERSON!!!!!!!!!!!!!!!!!"
+                        newfeats = DELETE
+#                if not tense and not aspect:
+#                    newfeats = "NO TENSE OR ASPECT!!!!!!!!!!!!!!!!!"
+#                    #newfeats = DELETE
+#                if not mood:
+#                    newfeats = "NO MOOD!!!!!!!!!!!!!!!!!"
+#                    #newfeats = DELETE
+ 
+            if verbform and "=conv" in verbform.group(0) and not tense:
+                newfeats = DELETE
+            if not verbform:
+                newfeats = DELETE
+            if case:
+                newfeats = DELETE
+            if degree:
+                newfeats = DELETE
+            if variant:
+                newfeats = DELETE
+#            if style:
+#                newfeats = DELETE
+#            if typo:
+#                newfeats = DELETE
+#            if abbr:
+#                newfeats = DELETE
+
+#            print(feats, newfeats)
+            if newfeats[0] == "|":
+                newfeats = newfeats[1:]
+            featmap[feats] = newfeats
+
+#    print(len(set(featmap.values())),set(featmap.values()))
+#    for feat, newfeat in featmap.items():
+#        if newfeat:
+#            if feat.count("|") != newfeat.count("|") and newfeat != DELETE:
+#                print(feat.strip())
+#                print("\t", newfeat.strip())
+#    exit()
+    return(featmap)
+
+
+
 def construct_UD_Spanish(pos_by_feats):
     findnumber = re.compile(r"(number=(plur|sing))")
     findverbform = re.compile(r"(verbform=(\w+))")
@@ -453,6 +927,8 @@ def construct_UD_Spanish(pos_by_feats):
                 if verbform.group(2) == "fin":
                     if not person or not number or not mood:
                         newfeats = DELETE
+                if verbform.group(2) != "fin":
+                    newfeats = DELETE
             else:
                 newfeats = DELETE    
 
@@ -463,6 +939,50 @@ def construct_UD_Spanish(pos_by_feats):
 #        if feat.count("|") != newfeat.count("|"):
 #            print(feat)
 #            print("\t", newfeat)
+    return featmap
+
+
+def construct_UD_Tagalog(pos_by_feats):
+    findnumber = re.compile(r"(number=\w+)")
+    findforeign = re.compile(r"(foreign=\w+)")
+    findaspect = re.compile(r"(aspect=\w+)")
+    findtense = re.compile(r"(tense=\w+)")
+    findverbform = re.compile(r"(verbform=\w+)")
+    findmood = re.compile(r"(mood=\w+)")
+    featmap = {}
+    for feats, poss in pos_by_feats.items():
+        newfeats = ""
+        if "verb" in poss and "noun" not in poss:
+            foreign = findforeign.search(feats)
+            verbform = findverbform.search(feats)
+            aspect = findaspect.search(feats)
+            tense = findtense.search(feats)
+            mood = findmood.search(feats)
+            if tense:
+                newfeats += "|" + tense.group(0)
+            if verbform:
+                newfeats += "|" + verbform.group(0)
+            if aspect:
+                newfeats += "|" + aspect.group(0)
+            if mood:
+                newfeats += "|" + mood.group(0)
+
+
+            if foreign:
+                newfeats = DELETE
+
+            print(feats, newfeats)
+            if newfeats[0] == "|":
+                newfeats = newfeats[1:]
+            featmap[feats] = newfeats
+
+
+#    print(len(set(featmap.values())),set(featmap.values()))
+#    for feat, newfeat in featmap.items():
+#        if feat.count("|") != newfeat.count("|"):
+#            print(feat)
+#            print("\t", newfeat)
+#    exit()
     return featmap
 
 
