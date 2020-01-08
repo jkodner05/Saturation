@@ -1,14 +1,14 @@
 import re, sys
-from os import listdir, walk
-from os.path import isfile, join
+from os import listdir, walk, mkdir
+from os.path import isfile, join, exists
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from construct_featmap import *
 import statistics
 
-PATH = "../../data/ud-treebanks-v2.3"
-
-languages = sys.argv[1:]
+#PATH = "../../data/ud-treebanks-v2.3"
+PATH = sys.argv[1]
+languages = sys.argv[2:]
 
 def get_fnames():
     fnames_by_language = {}
@@ -600,29 +600,6 @@ def main():
         print("\n\n")
         print(language)
         print(numtokens, len(counts_by_lemma))
-#        for i, form in enumerate(forms_by_lemma_mapped[("et","verb")]):
-#            if "=vnoun" in form:
-#                print(i, form)
-
-
-        #bybee
-    #    for verb in bybee1985strong:
-    #        if (verb, "verb") in counts_by_lemma_mapped:
-    #            print(verb, counts_by_lemma_mapped[(verb, "verb")], forms_by_lemma_mapped[(verb,"verb")])
-    #        else:
-    #            print(verb, 0)
-
-#        print(len(forms_by_lemma[("tener","verb")]))
-#        for f in sorted(forms_by_lemma[("tener","verb")], key = lambda kv: kv[0]):
-#            print(f)
-#        print(len(forms_by_lemma_mapped[("tener","verb")]))
-#        for f in sorted(forms_by_lemma_mapped[("tener","verb")], key = lambda kv: kv[0]):
-#            print(f)
-#        print(len(forms_by_lemma_nofeats[("tener","verb")]))
-#        for f in sorted(forms_by_lemma_nofeats[("tener","verb")], key = lambda kv: kv):
-#            print(f)
-
-
 
     ##########################
     # Token Type Plots
@@ -646,15 +623,18 @@ def main():
         print("\nRaw UDT")
         avgverb, maxverb, numverb, maxverbval, verbtokens = get_pdgmsize_stats(counts_by_lemma, numtokens_by_lemma, "verb")
 #        print("N: ", avgnoun, maxnoun, numnoun, nountokens, nountokens/numnoun)
-        print("V: ", avgverb, maxverb, numverb, verbtokens, verbtokens/numverb)
+        print("V: ", avgverb, maxverb, numverb, verbtokens, verbtokens/numverb, len(set([feat for feat in counts_by_feats if "verb" in pos_by_feats[feat]])))
         make_lemmaplots(numtokens_by_lemma, counts_by_lemma, language, "verb", cutoff=100000)
+
+
 
     ##########################
     # Cleaned UDT features
         print("\nCleaned UDT")
         avgverb, maxverb, numverb, maxverbval, verbtokens = get_pdgmsize_stats(counts_by_lemma_mapped, numtokens_by_lemma, "verb")
 #        print("N: ", avgnoun, maxnoun, numnoun, nountokens, nountokens/numnoun)
-        print("V: ", avgverb, maxverb, numverb, verbtokens, verbtokens/numverb)
+        print("V: ", avgverb, maxverb, numverb, verbtokens, verbtokens/numverb, len(set([feat for feat in counts_by_feats_mapped if "verb" in pos_by_feats_mapped[feat]])))
+
 #        print(forms_by_lemma[("folear","verb")])
 #        print(forms_by_lemma_mapped[("_","verb")])
 #        exit()
@@ -716,4 +696,7 @@ def main():
     #    plot_numtypes_by_lemmas(counts_by_lemma, language, "verb")
 
 if __name__=="__main__":
+    outdir = "outputdata"
+    if not exists(outdir):
+        mkdir(outdir)
     main()
