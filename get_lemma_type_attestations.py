@@ -326,7 +326,7 @@ def plot_lemmas_by_numtypes(ax, numtypes_by_lemma, pos, cutoff=0, begrey=False):
     fontsize = 40
     ax.tick_params(labelsize=25)
     ax.set_xlabel('Ranked Lemmas', fontsize=fontsize)
-    ax.set_ylabel('Infl Form Type Count', fontsize=fontsize)
+    ax.set_ylabel('Infl. Form Type Count', fontsize=fontsize)
 #    ax.set_title('Infl Form Type Counts by Lemma', fontsize=fontsize)
     return
 
@@ -486,7 +486,8 @@ def make_inflplots(numtokens_by_feats, numtypes_by_feats, pos_by_feats, language
 #    plt.close(fig)
 
     fig, axarr = plt.subplots(figsize=(12,12))
-    fig.suptitle("UD " + language.split("_")[1] + " IPS", fontsize=60)
+    fig.set_dpi(300)
+    fig.suptitle("UD " + language.split("_")[1] + " IPS", fontsize=50)
     plot_infltypes_by_counts(axarr, numtypes_by_feats, pos_by_feats, language, poss[0], "Types", begrey=begrey)
     plt.savefig("plots/" + language + "_infl_" + poss[0] + ".png")
     plt.close(fig)
@@ -505,7 +506,8 @@ def make_lemmaplots(numtokens_by_lemma, numtypes_by_lemma, language, pos, cutoff
 #    plt.close(fig)
 
     fig, axarr = plt.subplots(figsize=(12,12))
-    fig.suptitle("UD " + language.split("_")[1] + " PS", fontsize=60)
+    fig.set_dpi(300)
+    fig.suptitle("UD " + language.split("_")[1] + " PS", fontsize=50)
     plot_lemmas_by_numtypes(axarr, numtypes_by_lemma, pos, cutoff=cutoff, begrey=begrey)
     plt.savefig("plots/" + language + "_" + pos + ".png")
     plt.close(fig)
