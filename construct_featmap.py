@@ -487,6 +487,8 @@ def construct_UD_English(pos_by_feats):
 
             if newfeats == feats:
                 newfeats = DELETE
+            if newfeats not in ("ing","past","pres","ppart","pres3sg"):
+                newfeats = DELETE
             featmap[feats] = newfeats
 
 #    print(len(set(featmap.keys())),len(set(featmap.values())),set(featmap.values()))
