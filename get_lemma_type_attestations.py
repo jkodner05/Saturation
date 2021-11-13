@@ -109,9 +109,9 @@ def get_pdgmsize_stats(counts_by_lemma, numtoks_by_lemma, pos):
     return avgsize, maxsize, relevantcount-1, maxone, relevanttokens
 
 
-def PAST_plot_only_infltypes_by_counts(num_by_feats, pos_by_feats, ylab, subtitle, language):
-    fig, ax = plt.subplots(1, 1, figsize=(12,12))
-
+def PAST_plot_only_infltypes_by_counts(num_by_feats, pos_by_feats, title, ylab, subtitle, language, suff):
+    fig, ax = plt.subplots(figsize=(12,12))
+    fig.set_dpi(300)
     if len(num_by_feats) < 2:
         return
     maxtokens = max(num_by_feats.values())
@@ -119,38 +119,62 @@ def PAST_plot_only_infltypes_by_counts(num_by_feats, pos_by_feats, ylab, subtitl
     x = []
     h1 = set([])
     h2 = set([])
+    h3 = set([])
     numbins = 0
     num_by_feats = sorted(num_by_feats.items(), key=lambda kv: kv[1], reverse=True)
+    sumcounts = 0
+    relevantcounts = []
     for feats, count in num_by_feats:        
         if "verb" in pos_by_feats[feats]:
 #            print(feats, count)
-            if HIGHLIGHT1 in feats or HIGHLIGHT2 in feats:
+            if HIGHLIGHT1 in feats or HIGHLIGHT2 in feats or HIGHLIGHT3 in feats:
                 x.extend([numbins]*count)
                 if HIGHLIGHT1 in feats:
                     h1.add(numbins)
+                    print(feats, count)
                 elif HIGHLIGHT2 in feats:
                     h2.add(numbins)
+                    print(feats, count)
+                elif HIGHLIGHT3 in feats:
+                    h3.add(numbins)
+                    print(feats, count)
                 numbins += 1
-                
+                sumcounts += count
+                relevantcounts.append(count)
+    print(sumcounts, relevantcounts[0], relevantcounts[1], relevantcounts[2])
 
-    print(numbins)
-    n, bins, patches = ax.hist(x, numbins)
+#    print(numbins)
+#    n, bins, patches = ax.hist(x, numbins)
 
-    for i, patch in enumerate(patches):
-        if i in h2:
-            patch.set_facecolor("goldenrod")
+#    for i, patch in enumerate(patches):
+#        if i in h1:
+#            patch.set_facecolor("silver")
+#        if i in h2:
+#            patch.set_facecolor("goldenrod")
 
-    ax.set_xlabel('Past Verb Form', fontsize=30)
-    ax.set_ylabel(ylab, fontsize=30)
-    ax.set_title(language + ": " + subtitle + ' by Past Verb Infl. Category', fontsize=36)
-    plt.xticks(fontsize=24)  
-    plt.yticks(fontsize=24)
 
-    handles = [Rectangle((0,0),1,1,color=c) for c in [patches[0].get_facecolor(),"goldenrod"]]
-    labels= ["Past 3sg and Past Part.", "Other"]
-    plt.legend(handles, labels, fontsize = 30)
+    colors = []
+    for i in range(0,numbins):
+        if i in h1:
+            colors.append("silver")
+        elif i in h2:
+            colors.append("goldenrod")
+        else:
+            colors.append("C0")
+    ax.bar(range(0,len(relevantcounts)), relevantcounts, width=1.0, linewidth=1, color=colors, edgecolor=colors)
 
-    plt.savefig("plots/" + language + "_cleaned"  + "_verbs" + ".png")
+    fontsize=30
+    ax.set_xlabel('Past Infl. Category', fontsize=fontsize)
+    ax.set_ylabel(ylab, fontsize=fontsize)
+    ax.set_title(language.replace("UD_","") + " " + title, fontsize=35)
+    ax.tick_params(labelsize=25)
+    plt.xticks(range(0, len(relevantcounts)+1, 3))
+    
+    handles = [Rectangle((0,0),1,1,color=c) for c in ["silver", "goldenrod", "C0"]]
+    labels= ["Past Ptc", "Past 3sg", "Other Past"]
+    plt.legend(handles, labels, fontsize=fontsize)
+
+    plt.savefig("plots/" + language + "_pastinfl_"  + suff + ".pdf")
     plt.close(fig)
 
 #    exit()
@@ -250,9 +274,9 @@ def plot_infltypes_by_counts(ax, num_by_feats, pos_by_feats, language, pos, subt
 
     y = [float(count) for feats, count in sorted_num_by_feats if (pos in pos_by_feats[feats])]
     if begrey:
-        ax.bar(range(0,len(y)), y, width=1.0, color="grey")
+        ax.bar(range(0,len(y)), y, width=1.0, color="grey", edgecolor="grey", linewidth=1)
     else:
-        ax.bar(range(0,len(y)), y, width=1.0)
+        ax.bar(range(0,len(y)), y, width=1.0, linewidth=1)
         
     fontsize=40
     ax.tick_params(labelsize=25)
@@ -318,9 +342,9 @@ def plot_lemmas_by_numtypes(ax, numtypes_by_lemma, pos, cutoff=0, begrey=False):
     if cutoff:
         ycut = y[0:min(len(y),cutoff)]
     if begrey:
-        ax.bar(range(0,len(ycut)), ycut, width=1.0, color="grey")
+        ax.bar(range(0,len(ycut)), ycut, width=1.0, color="grey", edgecolor="grey", linewidth=1)
     else:
-        ax.bar(range(0,len(ycut)), ycut, width=1.0)
+        ax.bar(range(0,len(ycut)), ycut, width=1.0, linewidth=1)
 
 
     fontsize = 40
@@ -489,7 +513,7 @@ def make_inflplots(numtokens_by_feats, numtypes_by_feats, pos_by_feats, language
     fig.set_dpi(300)
     fig.suptitle("UD " + language.split("_")[1] + " IPS", fontsize=50)
     plot_infltypes_by_counts(axarr, numtypes_by_feats, pos_by_feats, language, poss[0], "Types", begrey=begrey)
-    plt.savefig("plots/" + language + "_infl_" + poss[0] + ".png")
+    plt.savefig("plots/" + language + "_infl_" + poss[0] + ".pdf")
     plt.close(fig)
 
 
@@ -509,7 +533,7 @@ def make_lemmaplots(numtokens_by_lemma, numtypes_by_lemma, language, pos, cutoff
     fig.set_dpi(300)
     fig.suptitle("UD " + language.split("_")[1] + " PS", fontsize=50)
     plot_lemmas_by_numtypes(axarr, numtypes_by_lemma, pos, cutoff=cutoff, begrey=begrey)
-    plt.savefig("plots/" + language + "_" + pos + ".png")
+    plt.savefig("plots/" + language + "_" + pos + ".pdf")
     plt.close(fig)
 
 #    fig.tight_layout()
@@ -753,8 +777,8 @@ def main():
         make_inflplots(numtokens_by_feats_mapped, counts_by_feats_mapped, pos_by_feats_mapped, language+"_cleaned", ("verb",), begrey= language.lower() in historical)
 
     ############
-#        plot_only_infltypes_by_counts(counts_by_feats_mapped, pos_by_feats_mapped, "# Lemmas Attested", "Types", language)
-    #    plot_only_infltypes_by_counts(numtokens_by_feats_mapped, pos_by_feats_mapped, "# Tokens", "Tokens")
+        PAST_plot_only_infltypes_by_counts(counts_by_feats_mapped, pos_by_feats_mapped, "Past Infls. by IPS","# Lemmas Attested", "Types", language, "types")
+        PAST_plot_only_infltypes_by_counts(numtokens_by_feats_mapped, pos_by_feats_mapped, "Past Infls. by Token Freq", "# Tokens", "Tokens", language, "tokens")
 
 
 

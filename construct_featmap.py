@@ -3,6 +3,7 @@ import re
 DELETE = "--DELETE--"
 HIGHLIGHT1 = "--HIGHLIGHT1--"
 HIGHLIGHT2 = "--HIGHLIGHT2--"
+HIGHLIGHT3 = "--HIGHLIGHT3--"
 
 def construct_UD_generic(pos_by_feats):
     findnumber = re.compile(r"(number=\w+)")
@@ -358,11 +359,11 @@ def construct_UD_German(pos_by_feats):
         
             if "person=3" in newfeats and "number=sing" in newfeats and ("tense=past" in newfeats) and "mood=ind" in feats and "voice=pass" not in feats:
 #                print("HIGHLIGHT", newfeats)
-                newfeats += "|" + HIGHLIGHT1
-            elif "verbform=part" in feats and "tense=past" in feats and "voice=act" not in feats:
+                newfeats += "|" + HIGHLIGHT2
+            elif "verbform=part" in feats and "voice=act" not in feats:
                 newfeats += "|" + HIGHLIGHT1
             elif "tense=past" in newfeats:
-                newfeats += "|" + HIGHLIGHT2
+                newfeats += "|" + HIGHLIGHT3
 
 
             if newfeats[0] == "|":
@@ -429,11 +430,11 @@ def construct_UD_Gothic(pos_by_feats):
                 newfeats = DELETE
         
             if "person=3" in newfeats and "number=sing" in newfeats and ("tense=past" in newfeats) and "voice=act" in newfeats and "mood=sub" not in newfeats and "mood=imp" not in newfeats and "mood=opt" not in newfeats:
-                newfeats += "|" + HIGHLIGHT1
+                newfeats += "|" + HIGHLIGHT2
             elif "verbform=part" in feats and "tense=past" in feats and "voice=act" not in feats:
                 newfeats += "|" + HIGHLIGHT1
             elif "tense=past" in newfeats:
-                newfeats += "|" + HIGHLIGHT2
+                newfeats += "|" + HIGHLIGHT3
                 
             if newfeats[0] == "|":
                 newfeats = newfeats[1:]
