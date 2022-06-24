@@ -1,0 +1,10 @@
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 50000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 100000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 150000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 200000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 250000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 300000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 350000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 400000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 450000
+python3 get_rankstats.py ../../data/ud-treebanks-v2.3/ UD_Latin 500000
